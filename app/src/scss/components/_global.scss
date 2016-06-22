@@ -1,0 +1,25 @@
+// global scss
+
+* {
+	box-sizing: border-box;
+}
+
+html {
+	font-size: 62.5%;
+}
+
+body {
+	@include font-size($font-size-base);
+	font-family: $font-family-base;
+	background-color: $color3;
+	color: white;
+	line-height: ($font-lineheight-base/$font-size-base);
+}
+
+.wrapper {
+	padding: em(30) em(15);
+	width: em(800);
+	margin: 0 auto;
+	max-width: 100%;
+	@include clearfix;
+}

@@ -1,0 +1,50 @@
+$module: 		'form';
+
+.#{$module} {
+	margin-bottom: em(30);
+	@include clearfix;
+
+	&__items {
+		@include display(flex);
+	}
+
+	&__item {
+		margin-bottom: em(10);
+
+		&.right {
+			margin-left: auto;
+		}
+	}
+
+	&__control {
+		display: block;
+		margin-bottom: em(15);
+	}
+
+	&__control--select {
+		@extend .#{$module}__control;
+		position: relative;
+
+		&:after {
+			content: "";
+			position: absolute;
+			right: em(10);
+			top: 50%;
+			@include transform(translateY(-50%));
+			border-top: 10px solid white;
+			border-left: 10px solid transparent;
+			border-right: 10px solid transparent;
+		}
+	}
+	&__select {
+		width: em(350);
+		max-width: 100%;
+		border-radius: em(5);
+		background-color: rgba(white,0.1);
+		-webkit-appearance: none;
+		padding: em(7) em(15) em(10);
+		border: 0;
+		outline: 0;
+		color: white;
+	}
+}

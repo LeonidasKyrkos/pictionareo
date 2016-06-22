@@ -1,0 +1,39 @@
+// variables //
+
+// font //
+
+$font-family-base: 			'Farsan', Tahoma, sans-serif;
+$font-family-secondary: 	'Farsan', Helvetica, sans-serif;
+$font-family-headings: 		'Farsan', sans-serif;
+
+$font-size-base: 			20;
+
+$font-weight-light: 		300;
+$font-weight-regular: 		400;
+$font-weight-semibold: 		600;
+$font-weight-bold: 			700;
+
+$font-lineheight-base: 		22;
+
+
+// layout //
+
+$layout-width-page: 		100%;
+$layout-width-content: 		1400;
+
+
+// colours //
+
+$color1: 					FIREBRICK;
+$color2: 					#0D2747;
+$color3: 					rgba(40,40,40,1);
+$color4: 					lighten($color3,15%);
+
+
+$headings: 							'.alpha','.beta','.gamma','.delta';
+$headingSizes: 						51,48,21,16;
+$headingFamilies: 					$font-family-base, $font-family-base, $font-family-base, $font-family-base;
+$headingColors: 					inherit , inherit, inherit, inherit;
+$headingMargins: 					20,25,20,20;
+$headingLineHeights: 				50,44,28,14;
+$font-weight-heading:  				$font-weight-regular;

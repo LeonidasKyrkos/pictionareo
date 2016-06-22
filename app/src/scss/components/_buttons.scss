@@ -1,0 +1,26 @@
+$module: 		'btn';
+
+.#{$module} {
+	background-color: transparent;
+	display: inline-block;
+	margin-bottom: 0;
+	font-family: $font-family-base;
+	text-align: center;
+	vertical-align: middle;
+  	touch-action: manipulation;
+	cursor: pointer;
+	background-image: none;
+	border: 0;
+	@include user-select(none);
+	text-decoration: none !important;
+	outline: 0;
+
+	&--primary {
+		@extend .btn;
+		background-color: $color1;
+		border-radius: em(10);
+		color: white;
+		padding: em(10);
+		width: em(150);
+	}
+}

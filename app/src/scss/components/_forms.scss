@@ -4,6 +4,10 @@ $module: 		'form';
 	margin-bottom: em(30);
 	@include clearfix;
 
+	&--chat {
+		@include display(flex);
+	}
+
 	&__items {
 		@include display(flex);
 	}
@@ -46,5 +50,18 @@ $module: 		'form';
 		border: 0;
 		outline: 0;
 		color: white;
+	}
+
+	&__input {
+		$fontSize: 16;
+		font-size: em($fontSize);
+		line-height: 1.5;
+		padding: em(5,$fontSize) em(6,$fontSize);
+		width: 100%;
+		display: block;
+		outline: 0;
+		border: 0;
+		background-color: lighten($color4,50%);
+		width: calc(100% - 30px);
 	}
 }

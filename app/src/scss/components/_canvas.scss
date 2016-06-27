@@ -4,7 +4,17 @@ $module: 		'canvas';
 .#{$module} {
 	background-color: lighten($color3,15%);
 	cursor: pointer;
-	margin-bottom: em(15);
+	display: block;
+
+	&__wrap {
+		width: calc(80% - 20px);
+		max-width: 100%;
+	}
+
+	&__settings {
+		@include display(flex);
+		@include align-items(baseline);
+	}
 
 	&__title {
 		text-align: center;
@@ -14,9 +24,8 @@ $module: 		'canvas';
 
 	&__colours {
 		@include display(flex);
-		margin: 0 em(-5);
+		margin: 0 em(10) 0 auto;
 		@include justify-content(flex-end);
-		padding: 0 0 em(5) 0;
 	}
 
 	&__colour {
@@ -29,9 +38,8 @@ $module: 		'canvas';
 
 	&__brush-sizes {
 		@include display(flex);
-		margin: 0 em(-5);
+		margin: 0 em(10) 0 auto;
 		@include justify-content(flex-end);
-		padding: 0 0 em(5) 0;
 	}
 
 	&__brush-size-wrap {

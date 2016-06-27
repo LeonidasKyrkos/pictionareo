@@ -43,5 +43,7 @@ export default class DifficultyModes extends Component {
 }
 
 DifficultyModes.propTypes = {
-	state: PropTypes.object.isRequired
+	state: PropTypes.object.isRequired,
+	scope: PropTypes.object.isRequired,
+	changeMode: PropTypes.func.isRequired
 }

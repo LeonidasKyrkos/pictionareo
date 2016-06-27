@@ -17,10 +17,38 @@ $module: 		'btn';
 
 	&--primary {
 		@extend .btn;
+		$fontSize: 18;
+		font-size: em($fontSize);
 		background-color: $color1;
-		border-radius: em(10);
 		color: white;
-		padding: em(10);
-		width: em(150);
+		padding: em(10,$fontSize);
+		width: em(60,$fontSize);
+
+		&:hover {
+			background-color: darken($color1,10%);
+		}
+	}
+
+	&--secondary {
+		@extend .btn;
+		$fontSize: 12;
+		background-color: $color4;
+		font-size: em($fontSize);
+		width: em(70,$fontSize);
+		padding: em(8,$fontSize) em(10);
+		color: white;
+		border-radius: em(10);
+
+		&:hover {
+			background-color: darken($color4,10%);
+		}
+	}
+
+	&--submit {
+		@extend .#{$module}--secondary;
+		$fontSize: 12;
+		width: em(30,$fontSize);
+		padding: em(5);
+		border-radius: 0;
 	}
 }

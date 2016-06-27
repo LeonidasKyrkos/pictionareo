@@ -36,5 +36,8 @@
     "transform": [
       "debowerify"
     ]
+  },
+  "dependencies": {
+    "cardinal-spline-js": "^2.3.4"
   }
 }

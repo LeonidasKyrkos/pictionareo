@@ -10,6 +10,7 @@ var srcDir = "app/";
 var buildDir = srcDir + 'build/';
 var task = plugins.util.env._[0];
 var bourbon = require('node-bourbon').includePaths;
+var historyApiFallback = require('connect-history-api-fallback')
 
 gulp.task('styles', function() {
 
@@ -73,7 +74,9 @@ gulp.task('browser-sync', function() {
         return plugins.browserSync.init(null, {
                 server: {
                         baseDir: srcDir
-                }
+                },
+				middleware : [ historyApiFallback() ],
+				ghostMode: false
         });
 });
 

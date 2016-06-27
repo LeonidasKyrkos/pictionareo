@@ -1,3 +1,20 @@
 .float-right {
 	float: right;
 }
+
+.float-left {
+	float: left;
+}
+
+.flex-right {
+	display: block !important;
+	margin-left: auto !important;
+}
+
+.block {
+	display: block !important;
+}
+
+.ib {
+	display: inline-block !important;
+}

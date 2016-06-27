@@ -1,0 +1,9 @@
+$module: 			'game';
+
+
+.#{$module} {
+	&__wrap {
+		@include display(flex);
+		@include flex-wrap(wrap);
+	}
+}

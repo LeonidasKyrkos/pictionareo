@@ -1,0 +1,46 @@
+$module: 		'chat';
+
+
+.#{$module} {
+	$fontSize: 16;
+	width: 20%;
+	padding-top: em(50,$fontSize);
+	margin-left: auto;
+	@include display(flex);
+	@include flex-direction(column);
+	line-height: 1.4;
+	font-family: $font-family-secondary;
+	font-size: em($fontSize);
+
+	&__history {
+		@include flex-grow(1);
+		overflow: auto;
+		height: em(561);
+		margin-top: em(130);
+		margin-bottom: em(5);
+		@include clearfix;
+	}
+
+	&__msg-wrap {
+		@include clearfix;
+		margin-bottom: em(7,$fontSize);
+	}
+
+	&__label {
+		float: left;
+		width: em(50,$fontSize);		
+		overflow: hidden;				
+		margin-right: em(-50,$fontSize);
+		color: salmon;
+	}
+
+	&__text {
+		padding-right: em(5,$fontSize);
+		width: auto;
+		overflow: auto;
+		padding-left: em(70);
+		margin: 0;
+		word-break: break-word;
+		display: block;
+	}
+}

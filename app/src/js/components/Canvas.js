@@ -47,22 +47,20 @@ export default class Canvas extends Component {
 	// drag
 	dragBrush(e) {
 		if(this.painting) {
-			let prevArr = this.points[this.current];
+			
 
-			if(prevArr.length > 50) {
+			if(this.points[this.current].length > 50) {
+				let prevArr = this.points[this.current];
 				this.current++;
 				this.setupCurrent();
 				
 				let obj = prevArr[prevArr.length - 1];
-				let newObj = {};
-				
-				for(var prop in obj) {
-					newObj[prop] = obj[prop];
+				let counter = 0;
+
+				for(let i = prevArr.length - 5; i < prevArr.length -1; i++) {
+					this.points[this.current][counter] = prevArr[i];
+					counter++;
 				}
-
-				newObj.joined = true;
-
-				this.points[this.current][0] = newObj;
 			}
 
 			this.addToArray(this.getX(e),this.getY(e));
@@ -104,8 +102,7 @@ export default class Canvas extends Component {
 			x: mx, 
 			y: my, 
 			color: this.ctx.strokeStyle, 
-			size: this.ctx.lineWidth,
-			joined: false
+			size: this.ctx.lineWidth
 		})
 
 		this.scope.pushDrawState(this.points);
@@ -129,8 +126,10 @@ export default class Canvas extends Component {
 	// player redraw function
 	playerDraw() {
 		this.ctx.beginPath();
-		this.ctx.moveTo(this.points[this.current][0].x,this.points[this.current][0].y);
-
+		var startX = this.points[this.current][0].x;
+		var startY = this.points[this.current][0].y;
+		
+		this.ctx.moveTo(startX,startY);
 		this.renderPath(this.points[this.current]);
 	}
 
@@ -143,13 +142,14 @@ export default class Canvas extends Component {
 			let val = path[i];
 
 			if(i > 0 && i < length - 2) {
-				if(val.joined = true) {
-					
-					let x = (val.x + path[i + 1].x) / 2;
-					let y = (val.y + path[i + 1].y) / 2;
+				if(val.joined) {
+					var x = (val.x + path[i + 1].x) / 2;
+					var y = (val.y + path[i + 1].y) / 2;
+
+
 				} else {
-					let x = (val.x + path[i + 1].x) / 2;
-					let y = (val.y + path[i + 1].y) / 2;
+					var x = (val.x + path[i + 1].x) / 2;
+					var y = (val.y + path[i + 1].y) / 2;
 				}
 				
 				this.ctx.quadraticCurveTo(val.x, val.y, x, y);					

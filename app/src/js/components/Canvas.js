@@ -12,104 +12,190 @@ export default class Canvas extends Component {
 
 	componentDidMount() {
 		this.setupCanvas();
+
+		if(this.player) {
+			this.props.base.fetch('/rooms/' + this.scope.roomId + '/drawState',{
+				context: this,
+				then: this.redraw
+			});
+		}
 	}
 
 	setupCanvas() {
 		this.canvas = document.querySelector('#canvas');
 		this.canvas.setAttribute('width',this.canvas.parentElement.offsetWidth);
-		this.context = this.canvas.getContext('2d');
+		this.ctx = this.canvas.getContext('2d');
 		this.canvasX = this.canvas.offsetLeft;
 		this.canvasY = this.canvas.offsetTop;
-		this.context.strokeStyle = "#FFFFFF";
-		this.context.lineJoin = "round";
-  		this.context.lineWidth = 5;
+		this.ctx.strokeStyle = "#FFFFFF";
+		this.ctx.lineJoin = "round";
+  		this.ctx.lineWidth = 5;
   		this.numProps = Object.keys(this.scope.defaultDrawState).length;
+  		this.player = this.props.player;
 
   		this.redraw();
 	}
 
+	// start
 	startDrawing(e) {
 		this.painting = true;
-		let mouseX = e.pageX - this.canvasX;
-		let mouseY = e.pageY - this.canvasY;
-
-		this.addToArray(mouseX,mouseY);
+		this.current = this.points.length || 0;
+		this.setupCurrent();
+		this.addToArray(this.getX(e),this.getY(e));
 	}
 
+	// drag
 	dragBrush(e) {
-		let mouseX = e.pageX - this.canvasX;
-		let mouseY = e.pageY - this.canvasY;
-
 		if(this.painting) {
-			this.addToArray(mouseX,mouseY,true);
+			let prevArr = this.points[this.current];
+
+			if(prevArr.length > 50) {
+				this.current++;
+				this.setupCurrent();
+				
+				let obj = prevArr[prevArr.length - 1];
+				let newObj = {};
+				
+				for(var prop in obj) {
+					newObj[prop] = obj[prop];
+				}
+
+				newObj.joined = true;
+
+				this.points[this.current][0] = newObj;
+			}
+
+			this.addToArray(this.getX(e),this.getY(e));
+
+			if(this.player) {
+				this.playerDraw();
+			}
 		}
 	}
 
-	addToArray(mx,my) {
-		this.points.push({
+	// finish
+	stopDrawing() {
+		this.painting = false;
+	}
+
+
+	// UTILITIES
+
+	// setup latest (current) path item
+
+	setupCurrent() {
+		
+		this.points[this.current] = [];	
+	}	
+
+	// get x coordinate
+	getX(e) {
+		return e.pageX - this.canvasX;
+	}
+
+	// get y coordinate
+	getY(e) {
+		return e.pageY - this.canvasY;
+	}
+
+	// add to points array
+	addToArray(mx,my) {		
+		this.points[this.current].push({
 			x: mx, 
 			y: my, 
-			color: this.context.strokeStyle, 
-			size: this.context.lineWidth
+			color: this.ctx.strokeStyle, 
+			size: this.ctx.lineWidth,
+			joined: false
 		})
 
 		this.scope.pushDrawState(this.points);
 	}
 
-	stopDrawing() {
-		this.painting = false;
-	}
-
+	// client redraw function
 	redraw() {
-		if(this.points.length) {
-			let length = this.points.length;
-			this.clearCanvas();
-			this.context.drawImage(this.canvas,0 ,0);
+		this.clearContext(this.ctx);
+		for(var i = 0; i < this.points.length; i++) {
+			let val = this.points[i];
 
-			this.context.beginPath();
-			this.context.moveTo(this.points[0].x,this.points[0].y);
+			this.ctx.beginPath();
+			this.ctx.moveTo(val[0].x,val[0].y);
 
-			this.points.map((val,i)=>{
-				if(i > 0 && i < length - 2) {
-					console.log(this.points[i].color);
-					let c = (this.points[i].x + this.points[i + 1].x) / 2;
-					let d = (this.points[i].y + this.points[i + 1].y) / 2;
-					this.context.lineWidth = this.points[i].size;
-					this.context.strokeStyle = this.points[i].color;
-					this.context.quadraticCurveTo(this.points[i].x, this.points[i].y, c, d)					
+			let item = val;
+
+			this.renderPath(item);
+		}
+	}
+
+	// player redraw function
+	playerDraw() {
+		this.ctx.beginPath();
+		this.ctx.moveTo(this.points[this.current][0].x,this.points[this.current][0].y);
+
+		this.renderPath(this.points[this.current]);
+	}
+
+	// path renderer
+	renderPath(path) {
+		let first = path[0];
+		let length = path.length;
+
+		for(var i = 0; i < path.length; i++) {
+			let val = path[i];
+
+			if(i > 0 && i < length - 2) {
+				if(val.joined = true) {
+					
+					let x = (val.x + path[i + 1].x) / 2;
+					let y = (val.y + path[i + 1].y) / 2;
+				} else {
+					let x = (val.x + path[i + 1].x) / 2;
+					let y = (val.y + path[i + 1].y) / 2;
 				}
-			});
-			
-			this.context.stroke();
-		}	
+				
+				this.ctx.quadraticCurveTo(val.x, val.y, x, y);					
+			}
+
+			this.ctx.lineWidth = first.size;
+			this.ctx.strokeStyle = first.color;
+			this.ctx.stroke();
+		}
 	}
 
-	clearCanvas() {
-		this.context.clearRect(0, 0, this.context.canvas.width, this.context.canvas.height);
+	// clear the supplied context
+	clearContext(ctx) {
+		ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 	}
 
+	// empty points array
 	clearArrays() {
 		this.points = [];
 
 		this.scope.pushDrawState(this.points);
 	}
 
+	// empty contexts and points
 	fullClear() {
-		this.clearCanvas();
+		this.clearContext(this.ctx);
 		this.clearArrays();
 	}
 
+
+	// change the current stroke colour
 	updateColor(e) {
 		let newColor = e.target.getAttribute('data-color');
 
-		this.context.strokeStyle = newColor;
+		this.ctx.strokeStyle = newColor;
+		this.ctx.shadowColor = newColor;
 	}
 
+
+	// change brush size
 	changeBrushSize(e) {
 		let newSize = e.target.getAttribute('data-size');
-		this.context.lineWidth = newSize;
+		this.ctx.lineWidth = newSize;
 	}
 
+	// setup default arrays to avoid errors. Should be handled better really.
 	setupArrays() {
 		if(Object.keys(this.props.drawState).length) {
 			this.points = this.props.drawState;
@@ -175,7 +261,7 @@ export default class Canvas extends Component {
 						onMouseUp={this.stopDrawing.bind(this)} 
 						onMouseLeave={this.stopDrawing.bind(this)} 
 						onMouseMove={this.dragBrush.bind(this)} 
-				>
+				>				
 				</canvas>
 			</div>
 		)
@@ -185,5 +271,6 @@ export default class Canvas extends Component {
 Canvas.propTypes = {
 	puzzle: PropTypes.string,
 	scope: PropTypes.object.isRequired,
-	drawState: PropTypes.array
+	drawState: PropTypes.array,
+	player: PropTypes.bool.isRequired
 }

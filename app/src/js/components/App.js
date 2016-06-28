@@ -26,7 +26,7 @@ export default class App extends Component {
 			puzzle: '',
 			chatLog: [],
 			drawState: this.defaultDrawState,
-			player: false	
+			player: true	
 		};
 	}
 
@@ -112,7 +112,7 @@ export default class App extends Component {
 				<article className="wrapper">
 					<h1 className="alpha">Pictionary</h1>					
 					<div className="game__wrap">
-						<Canvas scope={this} drawState={this.state.drawState} puzzle={this.state.puzzle} />
+						<Canvas base={base} scope={this} player={this.state.player} drawState={this.state.drawState} puzzle={this.state.puzzle} />
 						<Chat scope={this} chatLog={this.state.chatLog} />
 					</div>					
 				</article>

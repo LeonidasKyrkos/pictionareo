@@ -186,6 +186,12 @@ body {
   display: table;
 }
 
+#memCanvas {
+  visibility: hidden;
+  max-height: 0;
+  overflow: hidden;
+}
+
 h1, h2, h3, h4, h5 {
   line-height: normal;
   font-weight: normal;

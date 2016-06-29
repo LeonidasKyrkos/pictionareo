@@ -20,6 +20,7 @@ $font-lineheight-base: 		22;
 
 $layout-width-page: 		100%;
 $layout-width-content: 		1400;
+$layout-width-canvas: 		calc(80% - 20px);
 
 
 // colours //
@@ -31,9 +32,9 @@ $color4: 					lighten($color3,15%);
 
 
 $headings: 							'.alpha','.beta','.gamma','.delta';
-$headingSizes: 						51,48,21,16;
+$headingSizes: 						51,48,32,24;
 $headingFamilies: 					$font-family-base, $font-family-base, $font-family-base, $font-family-base;
 $headingColors: 					inherit , inherit, inherit, inherit;
-$headingMargins: 					20,25,20,20;
+$headingMargins: 					20,25,15,10;
 $headingLineHeights: 				50,44,28,14;
 $font-weight-heading:  				$font-weight-regular;

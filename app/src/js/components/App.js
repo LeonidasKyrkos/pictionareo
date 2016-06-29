@@ -6,7 +6,6 @@ import reactMixin from 'react-mixin';
 import Rebase  from 're-base';
 var base = Rebase.createClass('https://pictionareo.firebaseio.com/');
 
-
 // components
 import DictionaryItem from './DictionaryItem';
 import DifficultyModes from './DifficultyModes';
@@ -16,7 +15,8 @@ import Chat from './Chat';
 export default class App extends Component {
 	constructor(props) {
 		super(props);
-		this.roomId = this.props.route.roomId;
+		this.roomId = 1;
+		this.userId = 'leo';
 
 		this.defaultDrawState = [];
 
@@ -26,22 +26,30 @@ export default class App extends Component {
 			puzzle: '',
 			chatLog: [],
 			drawState: this.defaultDrawState,
-			player: true	
+			player: true,
+			userId: this.userId,
+			roomId: this.roomId
 		};
 	}
 
 	componentDidMount() {
 		base.fetch('/dictionary', {
 			context: this,
-			then: this.gotState
+			then(data) {
+				this.setState({
+					dictionary: data
+				});
+			}
 		});
 
-		base.syncState('/rooms/' + this.roomId + '/puzzle', {
+		base.fetch('/rooms/' + this.state.roomId + '/puzzle/' + this.state.userId, {
 			context: this,
-			state: 'puzzle'
-		});
+			then(data) {
+				this.wordHandler(data);
+			}
+		})
 
-		base.syncState('/rooms/' + this.roomId + '/chatLog',{
+		base.syncState('/rooms/' + this.state.roomId + '/chatLog',{
 			context: this,
 			state: 'chatLog',
 			asArray: true,
@@ -50,28 +58,38 @@ export default class App extends Component {
 			}
 		});
 
-		base.syncState('/rooms/' + this.roomId + '/drawState',{
+		base.syncState('/rooms/' + this.state.roomId + '/drawState',{
 			context: this,
 			state: 'drawState',
 			asArray: true
 		});
 	}
 
-	gotState(data) {
-		this.setState({
-			dictionary: data,
-			loaded: true
-		})
+	wordHandler(word) {
+		if(word) {
+			this.setWord(word);
+		} else {
+			let dictionary = this.state.dictionary;
+			let random = Math.round(Math.random() * (Object.keys(dictionary).length - 1));
+			let word = Object.keys(dictionary)[random];
+
+			let data = {};
+			data[this.state.userId] = word;
+			let scope = this;
+
+			base.post('/rooms/' + this.state.roomId + '/puzzle', {
+				data,
+				then(){
+					scope.setWord(data[scope.state.userId]);
+				}
+			});
+		}
 	}
 
-	getWord() {
-		let dictionary = this.state.dictionary;
-		let random = Math.round(Math.random() * (Object.keys(dictionary).length - 1));
-		let word = Object.keys(dictionary)[random];
-
+	setWord(word) {
 		this.setState({
 			puzzle: word
-		});
+		})
 	}
 
 	pushDrawState(obj) {
@@ -96,7 +114,7 @@ export default class App extends Component {
 			data.message = msg;
 			data.timestamp = timestamp;
 
-			base.push('/rooms/room1/chatLog', {
+			base.push('/rooms/' + this.state.roomId + '/chatLog', {
 				data,
 				then(){
 					input.value = "";
@@ -107,12 +125,13 @@ export default class App extends Component {
 	}
 
 	render() {
-		if(this.state.loaded === true){
+		if(Object.keys(this.state.dictionary).length && typeof this.state.puzzle !== 'object'){
 			return (
 				<article className="wrapper">
-					<h1 className="alpha">Pictionary</h1>					
+					<h1 className="alpha">Pictionary</h1>
 					<div className="game__wrap">
-						<Canvas base={base} scope={this} player={this.state.player} drawState={this.state.drawState} puzzle={this.state.puzzle} />
+						<span className="game__title" id="word">{this.state.puzzle || 'fetching puzzle...'}</span>
+						<Canvas base={base} scope={this} player={this.state.player} drawState={this.state.drawState} />
 						<Chat scope={this} chatLog={this.state.chatLog} />
 					</div>					
 				</article>

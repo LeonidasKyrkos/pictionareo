@@ -6,4 +6,10 @@ $module: 			'game';
 		@include display(flex);
 		@include flex-wrap(wrap);
 	}
+
+	&__title {
+		@extend .beta;
+		text-align: center;
+		width: $layout-width-canvas;
+	}
 }

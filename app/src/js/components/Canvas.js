@@ -28,8 +28,11 @@ export default class Canvas extends Component {
 		this.canvasX = this.canvas.offsetLeft;
 		this.canvasY = this.canvas.offsetTop;
 		this.ctx.strokeStyle = "#FFFFFF";
+		this.ctx.shadowColor = "#FFFFFF";
+		this.ctx.shadowBlur = 0;
 		this.ctx.lineJoin = "round";
   		this.ctx.lineWidth = 5;
+  		this.ctx.translate(0.5, 0.5);
   		this.numProps = Object.keys(this.scope.defaultDrawState).length;
   		this.player = this.props.player;
 
@@ -41,15 +44,15 @@ export default class Canvas extends Component {
 		this.painting = true;
 		this.current = this.points.length || 0;
 		this.setupCurrent();
-		this.addToArray(this.getX(e),this.getY(e));
+		this.addToArray(this.getX(e),this.getY(e),false);
+
+		this.renderDot(this.points[this.current]);
 	}
 
 	// drag
 	dragBrush(e) {
 		if(this.painting) {
-			
-
-			if(this.points[this.current].length > 50) {
+			if(this.points[this.current].length > 30) {
 				let prevArr = this.points[this.current];
 				this.current++;
 				this.setupCurrent();
@@ -57,13 +60,13 @@ export default class Canvas extends Component {
 				let obj = prevArr[prevArr.length - 1];
 				let counter = 0;
 
-				for(let i = prevArr.length - 5; i < prevArr.length -1; i++) {
+				for(let i = prevArr.length - 8; i < prevArr.length -1; i++) {
 					this.points[this.current][counter] = prevArr[i];
 					counter++;
 				}
 			}
 
-			this.addToArray(this.getX(e),this.getY(e));
+			this.addToArray(this.getX(e),this.getY(e),true);
 
 			if(this.player) {
 				this.playerDraw();
@@ -97,12 +100,13 @@ export default class Canvas extends Component {
 	}
 
 	// add to points array
-	addToArray(mx,my) {		
+	addToArray(mx,my,dragStatus) {		
 		this.points[this.current].push({
 			x: mx, 
 			y: my, 
 			color: this.ctx.strokeStyle, 
-			size: this.ctx.lineWidth
+			size: this.ctx.lineWidth,
+			dragging: dragStatus
 		})
 
 		this.scope.pushDrawState(this.points);
@@ -111,26 +115,34 @@ export default class Canvas extends Component {
 	// client redraw function
 	redraw() {
 		this.clearContext(this.ctx);
+
 		for(var i = 0; i < this.points.length; i++) {
-			let val = this.points[i];
+			let path = this.points[i];
 
 			this.ctx.beginPath();
-			this.ctx.moveTo(val[0].x,val[0].y);
+			this.ctx.moveTo(path[0].x,path[0].y);
 
-			let item = val;
-
-			this.renderPath(item);
+			if(path.length > 6 && path[0].dragging || path[1] && path[1].dragging) {
+				this.renderPath(path);			
+			} else {
+				this.renderDot(path);
+			}
 		}
 	}
 
 	// player redraw function
 	playerDraw() {
 		this.ctx.beginPath();
-		var startX = this.points[this.current][0].x;
-		var startY = this.points[this.current][0].y;
+		let path = this.points[this.current];
+		let item = path[0];
+		var startX = item.x;
+		var startY = item.y;
 		
 		this.ctx.moveTo(startX,startY);
-		this.renderPath(this.points[this.current]);
+
+		if(item.length > 4 && path[0].dragging || path[1].dragging) {
+			this.renderPath(path);
+		}
 	}
 
 	// path renderer
@@ -159,6 +171,18 @@ export default class Canvas extends Component {
 			this.ctx.strokeStyle = first.color;
 			this.ctx.stroke();
 		}
+	}
+
+	// line renderer
+
+	renderDot(path) {
+		let obj = path[0];
+
+		this.ctx.beginPath();
+		this.ctx.arc(obj.x, obj.y, obj.size / 2, 0, 2 * Math.PI, false);
+		this.ctx.fillStyle = obj.color;
+		this.ctx.fill();
+		this.ctx.closePath();
 	}
 
 	// clear the supplied context
@@ -212,13 +236,12 @@ export default class Canvas extends Component {
 
 		this.setupArrays();
 
-		if(this.canvas && !this.scope.state.player) {
+		if(this.canvas && !this.props.player) {
 			this.redraw();
 		}
 
 		return (
 			<div className="canvas__wrap">
-				<span className="canvas__title beta" id="word">{this.props.puzzle}</span>
 				<ul className="canvas__settings">
 					<li>
 						<button className="btn--primary" onClick={this.fullClear.bind(this)} >Reset</button>
@@ -269,7 +292,6 @@ export default class Canvas extends Component {
 }
 
 Canvas.propTypes = {
-	puzzle: PropTypes.string,
 	scope: PropTypes.object.isRequired,
 	drawState: PropTypes.array,
 	player: PropTypes.bool.isRequired

@@ -16,7 +16,6 @@ $module: 		'chat';
 		@include flex-grow(1);
 		overflow: auto;
 		height: em(561);
-		margin-top: em(130);
 		margin-bottom: em(5);
 		@include clearfix;
 	}

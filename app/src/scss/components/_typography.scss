@@ -13,6 +13,7 @@ h1,h2,h3,h4,h5 {
 		font-family: #{nth($headingFamilies,$i)};
 		color: #{nth($headingColors,$i)};
 		line-height: (nth($headingLineHeights,$i)/nth($headingSizes,$i));
+		width: 100%;
 	}
 	
 	#{nth($headings,$i)} {

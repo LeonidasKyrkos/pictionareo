@@ -10,22 +10,21 @@ let unString = 'pictionareou';
 let pString = 'pictionareop';
 
 function validate() {
-	let roomId = window.location.pathname;
-	let un = localStorage.getItem(unString);
-	let p = localStorage.getItem(pString);
-
-	console.log(un,p);
+	let un = sessionStorage.getItem(unString);
+	let p = sessionStorage.getItem(pString);
 
 	if(!un || !p) {
-		//window.location.pathname = '/';
+		window.location.pathname = '/';
+	} else {
+		this.username = un;
 	}
 }
 
 var routes = (
 	<Router history={browserHistory}>
 		<Route path="/rooms/:roomId" component={App} onEnter={validate} />
-		<Route path="/" component={RoomPicker} unString={unString} />
-		<Route path="*" component={NoMatch} pString={pString} />
+		<Route path="/" component={RoomPicker} unString={unString} pString={pString} />
+		<Route path="*" component={NoMatch} />
 	</Router>
 )
 

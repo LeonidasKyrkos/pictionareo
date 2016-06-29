@@ -15,10 +15,12 @@ import Chat from './Chat';
 export default class App extends Component {
 	constructor(props) {
 		super(props);
-		this.roomId = 1;
-		this.userId = 'leo';
+		this.roomId = this.props.routeParams.roomId;
+		this.userId = this.props.route.username;
 
 		this.defaultDrawState = [];
+
+		var playerStatus = this.userId === 'leo' ? true : false;
 
 		this.state = {
 			loaded: false,
@@ -26,7 +28,7 @@ export default class App extends Component {
 			puzzle: '',
 			chatLog: [],
 			drawState: this.defaultDrawState,
-			player: true,
+			player: playerStatus,
 			userId: this.userId,
 			roomId: this.roomId
 		};
@@ -42,13 +44,6 @@ export default class App extends Component {
 			}
 		});
 
-		base.fetch('/rooms/' + this.state.roomId + '/puzzle/' + this.state.userId, {
-			context: this,
-			then(data) {
-				this.wordHandler(data);
-			}
-		})
-
 		base.syncState('/rooms/' + this.state.roomId + '/chatLog',{
 			context: this,
 			state: 'chatLog',
@@ -63,24 +58,41 @@ export default class App extends Component {
 			state: 'drawState',
 			asArray: true
 		});
+
+
+		if(this.state.player) {
+			base.fetch('/rooms/' + this.state.roomId + '/puzzle', {
+				context: this,
+				then(data) {
+					this.wordHandler(data);
+				}
+			})
+		} else {
+			base.syncState('/rooms/' + this.state.roomId + '/puzzle/word',{
+				context: this,
+				state: 'puzzle'
+			});
+		}
+		
 	}
 
-	wordHandler(word) {
-		if(word) {
-			this.setWord(word);
+	wordHandler(data) {
+		if(data && data.user === this.state.userId) {
+			this.setWord(data.word);
 		} else {
 			let dictionary = this.state.dictionary;
 			let random = Math.round(Math.random() * (Object.keys(dictionary).length - 1));
 			let word = Object.keys(dictionary)[random];
 
 			let data = {};
-			data[this.state.userId] = word;
+			data.word = word;
+			data.user = this.state.userId;
 			let scope = this;
 
 			base.post('/rooms/' + this.state.roomId + '/puzzle', {
 				data,
 				then(){
-					scope.setWord(data[scope.state.userId]);
+					scope.setWord(word);
 				}
 			});
 		}
@@ -105,12 +117,10 @@ export default class App extends Component {
 		let msg = input.value;
 		let chatHistory = document.querySelector('#chat-history');
 
-		if(msg.length) {
-			let name = 'maggie';
-			
+		if(msg.length) {			
 			let timestamp = (new Date()).getTime();
 			let data = {};
-			data.name = name;
+			data.name = this.state.userId;
 			data.message = msg;
 			data.timestamp = timestamp;
 
@@ -124,13 +134,33 @@ export default class App extends Component {
 		}
 	}
 
+	underscorePuzzle() {
+		let length = this.state.puzzle.length || 0;
+		let string = '';
+
+		if(length) {
+			for(var i = 0; i < length; i++) {
+				string += '_ ';
+			}
+
+			return string;
+		}
+	}
+
 	render() {
+		if(this.state.player) {
+			var puzzle = <span className="game__title" id="word">{this.state.puzzle || 'fetching puzzle...'}</span>;
+		} else {
+			var puzzle = <span className="game__title" id="word">{this.underscorePuzzle() || 'fetching puzzle...'}</span>;
+		}
+
+
 		if(Object.keys(this.state.dictionary).length && typeof this.state.puzzle !== 'object'){
 			return (
 				<article className="wrapper">
 					<h1 className="alpha">Pictionary</h1>
 					<div className="game__wrap">
-						<span className="game__title" id="word">{this.state.puzzle || 'fetching puzzle...'}</span>
+						{puzzle}
 						<Canvas base={base} scope={this} player={this.state.player} drawState={this.state.drawState} />
 						<Chat scope={this} chatLog={this.state.chatLog} />
 					</div>					

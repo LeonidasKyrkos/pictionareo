@@ -1,5 +1,6 @@
 import React, { Component, PropTypes } from 'react';
-import debounce from 'debounce';
+
+import CanvasSettings from './CanvasSettings';
 
 export default class Canvas extends Component {
 	constructor(props) {
@@ -229,56 +230,15 @@ export default class Canvas extends Component {
 	}
 
 	render() {
-		let small = 3;
-		let medium = 5;
-		let large = 7;
-		let huge = 12;
-
 		this.setupArrays();
 
 		if(this.canvas && !this.props.player) {
 			this.redraw();
 		}
 
-		return (
-			<div className="canvas__wrap">
-				<ul className="canvas__settings">
-					<li>
-						<button className="btn--primary" onClick={this.fullClear.bind(this)} >Reset</button>
-					</li>
-					<li className="canvas__brush-sizes">
-						<ul>
-							<li className="ib">
-								<span className="canvas__brush-size-wrap" data-size={small} onClick={this.changeBrushSize.bind(this)}>
-									<span className="canvas__brush-size" style={{width: small + 'px', height: small + 'px'}}></span>
-								</span>
-							</li>
-							<li className="ib">
-								<span className="canvas__brush-size-wrap" data-size={medium} onClick={this.changeBrushSize.bind(this)}>
-									<span className="canvas__brush-size" style={{width: medium + 'px', height: medium + 'px'}}></span>
-								</span>
-							</li>
-							<li className="ib">
-								<span className="canvas__brush-size-wrap" data-size={large} onClick={this.changeBrushSize.bind(this)}>
-									<span className="canvas__brush-size" style={{width: large + 'px', height: large + 'px'}}></span>
-								</span>
-							</li>
-							<li className="ib">
-								<span className="canvas__brush-size-wrap" data-size={huge} onClick={this.changeBrushSize.bind(this)}>
-									<span className="canvas__brush-size" style={{width: huge + 'px', height: huge + 'px'}}></span>
-								</span>
-							</li>
-						</ul>
-					</li>
-					<li className="canvas__colours">
-						<ul>
-							<li className="ib"><span data-color="#FFFFFF" style={{backgroundColor: '#FFFFFF'}} className="canvas__colour" onClick={this.updateColor.bind(this)}></span></li>
-							<li className="ib"><span data-color="#d15d0a" style={{backgroundColor: '#d15d0a'}} className="canvas__colour" onClick={this.updateColor.bind(this)}></span></li>
-							<li className="ib"><span data-color="#FFFB21" style={{backgroundColor: '#FFFB21'}} className="canvas__colour" onClick={this.updateColor.bind(this)}></span></li>
-							<li className="ib"><span data-color="#363CFF" style={{backgroundColor: '#363CFF'}} className="canvas__colour" onClick={this.updateColor.bind(this)}></span></li>
-						</ul>
-					</li>
-				</ul>
+		if (this.props.player) {
+			var canvasSettings = <CanvasSettings scope={this} fullClear={this.fullClear} changeBrushSize={this.changeBrushSize} updateColor={this.updateColor} />;
+			var canvas = ( 
 				<canvas width="100" height="600px" className="canvas" id="canvas" 
 						onMouseDown={this.startDrawing.bind(this)} 
 						onMouseUp={this.stopDrawing.bind(this)} 
@@ -286,6 +246,18 @@ export default class Canvas extends Component {
 						onMouseMove={this.dragBrush.bind(this)} 
 				>				
 				</canvas>
+			)
+		} else {
+			var canvasSettings = '';
+			var canvas = (
+				<canvas width="100" height="600px" className="canvas" id="canvas"></canvas>
+			)
+		}
+
+		return (
+			<div className="canvas__wrap">
+				{canvasSettings}
+				{canvas}
 			</div>
 		)
 	}

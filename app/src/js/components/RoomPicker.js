@@ -5,7 +5,7 @@ import { Router, Route, IndexRoute, Link, browserHistory } from 'react-router';
 import Rebase  from 're-base';
 var base = Rebase.createClass('https://pictionareo.firebaseio.com/');
 
-class RoomPicker extends React.Component {
+export default class RoomPicker extends React.Component {
 	constructor() {
 		super();
 	}
@@ -21,51 +21,94 @@ class RoomPicker extends React.Component {
 		let password = form.querySelector('#password').value;
 		let username = form.querySelector('#username').value;
 
+		let formData = {
+			room: roomId,
+			password: password,
+			username: username
+		}
+
 		base.fetch('/rooms', {
 			context: this,
 			then(data) {
-				let room = data[roomId];
-
-				if(room && room.password === password) {
-					let users = room.users;
-
-					if(typeof users === 'object') {
-						let failed = 0;
-
-						Object.keys(users).forEach((val,index)=>{
-							console.log(username,val);
-							if(username === val) {
-								failed++;
-							}
-						})
-
-						if(failed) {
-							this.failTest('user',username);
-						} else {
-							this.passTest(roomId,username,password);
-						}
-					}
+				let result = this.runTests(data,formData);
+				
+				if(result.status) {
+					this.passed(formData.room,formData.username,formData.password);
 				} else {
-					this.failTest('rpw');
+					this.failed(result.reason);
 				}
 			}
 		});
 	}
 
-	failTest(type,details) {
-		this.testObject = {
-			user: `Sorry there's already someone called ${details} in that room. Please choose another name.`,
-			rpw: `Room number not found or password incorrect`
+	runTests(data,formData) {
+		let room = data[formData.room];
+
+		if(!room) { return { status: false, reason: `Room number not found or password incorrect` } }
+
+		let tests = {
+			password: {
+				func: this.compare,
+				args: [room.password, formData.password, `Room number not found or password incorrect`]
+			},
+			users: {
+				func: this.in,
+				args: [room.users, formData.username, `Sorry there's already someone called ${formData.username} in that room. Please choose another name.`]
+			}
 		}
 
-		this.errors.textContent = this.testObject[type];
+		for(var test in tests) {
+			let func = tests[test].func;
+			let args = tests[test].args;
+
+			if(!func(args).status) {
+				return func(args);
+			}
+		}
+
+		return { status: true };
 	}
 
-	passTest(roomId,username,password) {
-		localStorage.setItem(this.props.route.unString,username);
-		localStorage.setItem(this.props.route.pString,password);
+	exists(args) {
+		if(args[0]) {
+			return { status: true };
+		} else {
+			return { status: false, reason: args[1] };
+		}
+	}
 
-		window.location.pathname = '/rooms/' + roomId;
+	compare(args) {
+		if(args[0] === args[1]) {
+			return { status: true };
+		} else {
+			return { status: false, reason: args[2] };
+		}
+	}
+
+	in(args) {
+		for(var prop in args[0]) {
+			if(args[1] === args[0][prop].name) {
+				return { status: false,  reason: args[2] };
+			}
+		}
+		return { status: true };
+	}
+
+
+	passed(roomId,username,password) {
+		sessionStorage.setItem(this.props.route.unString,username);
+		sessionStorage.setItem(this.props.route.pString,password);
+
+		base.push('/rooms/' + roomId + '/users',{
+			data: { name: username },
+			then() {
+				browserHistory.push('/rooms/' + roomId);
+			}
+		})		
+	}
+
+	failed(reason) {
+		this.errors.textContent = reason;
 	}
 
 	render() {
@@ -124,5 +167,3 @@ class RoomPicker extends React.Component {
 		)
 	}
 }
-
-export default RoomPicker;

@@ -2,10 +2,6 @@ import React, { Component, PropTypes } from 'react'
 import LinkedStateMixin from 'react-addons-linked-state-mixin';
 import reactMixin from 'react-mixin';
 
-// Firebase
-import Rebase  from 're-base';
-var base = Rebase.createClass('https://pictionareo.firebaseio.com/');
-
 // components
 import DictionaryItem from './DictionaryItem';
 import DifficultyModes from './DifficultyModes';
@@ -17,25 +13,26 @@ export default class App extends Component {
 		super(props);
 		this.roomId = this.props.routeParams.roomId;
 		this.userId = this.props.route.username;
+		this.base = this.props.route.base;
 
 		this.defaultDrawState = [];
 
 		var playerStatus = this.userId === 'leo' ? true : false;
 
 		this.state = {
-			loaded: false,
 			dictionary: {},
 			puzzle: '',
 			chatLog: [],
 			drawState: this.defaultDrawState,
 			player: playerStatus,
 			userId: this.userId,
-			roomId: this.roomId
+			roomId: this.roomId,
+			users: {}
 		};
 	}
 
 	componentDidMount() {
-		base.fetch('/dictionary', {
+		this.base.fetch('/dictionary', {
 			context: this,
 			then(data) {
 				this.setState({
@@ -44,7 +41,7 @@ export default class App extends Component {
 			}
 		});
 
-		base.syncState('/rooms/' + this.state.roomId + '/chatLog',{
+		this.base.syncState('/rooms/' + this.state.roomId + '/chatLog',{
 			context: this,
 			state: 'chatLog',
 			asArray: true,
@@ -53,22 +50,26 @@ export default class App extends Component {
 			}
 		});
 
-		base.syncState('/rooms/' + this.state.roomId + '/drawState',{
+		this.base.syncState('/rooms/' + this.state.roomId + '/drawState',{
 			context: this,
 			state: 'drawState',
 			asArray: true
 		});
 
+		this.base.syncState('/rooms/' + this.state.roomId + '/users',{
+			context: this,
+			state: 'users'
+		});
 
 		if(this.state.player) {
-			base.fetch('/rooms/' + this.state.roomId + '/puzzle', {
+			this.base.fetch('/rooms/' + this.state.roomId + '/puzzle', {
 				context: this,
 				then(data) {
 					this.wordHandler(data);
 				}
 			})
 		} else {
-			base.syncState('/rooms/' + this.state.roomId + '/puzzle/word',{
+			this.base.syncState('/rooms/' + this.state.roomId + '/puzzle/word',{
 				context: this,
 				state: 'puzzle'
 			});
@@ -89,7 +90,7 @@ export default class App extends Component {
 			data.user = this.state.userId;
 			let scope = this;
 
-			base.post('/rooms/' + this.state.roomId + '/puzzle', {
+			this.base.post('/rooms/' + this.state.roomId + '/puzzle', {
 				data,
 				then(){
 					scope.setWord(word);
@@ -101,12 +102,13 @@ export default class App extends Component {
 	setWord(word) {
 		this.setState({
 			puzzle: word
-		})
+		})		
 	}
 
 	pushDrawState(obj) {
-		this.setState({
-			drawState: obj
+		// I used to set state here and let the re-base syncstate update the firebase db. This no longer works for some reason...	
+		this.base.post('/rooms/' + this.state.roomId + '/drawState', {
+			data: obj
 		});
 	}
 
@@ -124,7 +126,7 @@ export default class App extends Component {
 			data.message = msg;
 			data.timestamp = timestamp;
 
-			base.push('/rooms/' + this.state.roomId + '/chatLog', {
+			this.base.push('/rooms/' + this.state.roomId + '/chatLog', {
 				data,
 				then(){
 					input.value = "";
@@ -161,7 +163,7 @@ export default class App extends Component {
 					<h1 className="alpha">Pictionary</h1>
 					<div className="game__wrap">
 						{puzzle}
-						<Canvas base={base} scope={this} player={this.state.player} drawState={this.state.drawState} />
+						<Canvas base={this.base} scope={this} player={this.state.player} drawState={this.state.drawState} />
 						<Chat scope={this} chatLog={this.state.chatLog} />
 					</div>					
 				</article>

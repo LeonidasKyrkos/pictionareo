@@ -2,6 +2,10 @@ import React  from 'react';
 import ReactDOM  from 'react-dom';
 import { Router, Route, IndexRoute, Link, browserHistory } from 'react-router';
 
+// Firebase
+import Rebase  from 're-base';
+var base = Rebase.createClass('https://pictionareo.firebaseio.com/');
+
 import App from './components/App';
 import RoomPicker from './components/RoomPicker';
 import NoMatch from './components/NoMatch';
@@ -22,8 +26,8 @@ function validate() {
 
 var routes = (
 	<Router history={browserHistory}>
-		<Route path="/rooms/:roomId" component={App} onEnter={validate} />
-		<Route path="/" component={RoomPicker} unString={unString} pString={pString} />
+		<Route path="/rooms/:roomId" component={App} onEnter={validate} base={base} />
+		<Route path="/" component={RoomPicker} unString={unString} pString={pString} base={base} />
 		<Route path="*" component={NoMatch} />
 	</Router>
 )

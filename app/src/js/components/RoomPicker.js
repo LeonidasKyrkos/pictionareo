@@ -1,13 +1,11 @@
 import React from 'react';
 import { Router, Route, IndexRoute, Link, browserHistory } from 'react-router';
 
-// Firebase
-import Rebase  from 're-base';
-var base = Rebase.createClass('https://pictionareo.firebaseio.com/');
-
 export default class RoomPicker extends React.Component {
-	constructor() {
-		super();
+	constructor(props) {
+		super(props);
+
+		this.base = this.props.route.base;
 	}
 
 	componentDidMount() {
@@ -27,7 +25,7 @@ export default class RoomPicker extends React.Component {
 			username: username
 		}
 
-		base.fetch('/rooms', {
+		this.base.fetch('/rooms', {
 			context: this,
 			then(data) {
 				let result = this.runTests(data,formData);
@@ -99,7 +97,7 @@ export default class RoomPicker extends React.Component {
 		sessionStorage.setItem(this.props.route.unString,username);
 		sessionStorage.setItem(this.props.route.pString,password);
 
-		base.push('/rooms/' + roomId + '/users',{
+		this.base.push('/rooms/' + roomId + '/users',{
 			data: { name: username },
 			then() {
 				browserHistory.push('/rooms/' + roomId);

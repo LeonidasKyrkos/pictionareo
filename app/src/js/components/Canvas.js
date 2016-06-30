@@ -13,21 +13,12 @@ export default class Canvas extends Component {
 
 	componentDidMount() {
 		this.setupCanvas();
-
-		if(this.player) {
-			this.props.base.fetch('/rooms/' + this.scope.roomId + '/drawState',{
-				context: this,
-				then: this.redraw
-			});
-		}
 	}
 
 	setupCanvas() {
 		this.canvas = document.querySelector('#canvas');
 		this.canvas.setAttribute('width',this.canvas.parentElement.offsetWidth);
 		this.ctx = this.canvas.getContext('2d');
-		this.canvasX = this.canvas.offsetLeft;
-		this.canvasY = this.canvas.offsetTop;
 		this.ctx.strokeStyle = "#FFFFFF";
 		this.ctx.shadowColor = "#FFFFFF";
 		this.ctx.shadowBlur = 0;
@@ -46,8 +37,6 @@ export default class Canvas extends Component {
 		this.current = this.points.length || 0;
 		this.setupCurrent();
 		this.addToArray(this.getX(e),this.getY(e),false);
-
-		this.renderDot(this.points[this.current]);
 	}
 
 	// drag
@@ -68,10 +57,6 @@ export default class Canvas extends Component {
 			}
 
 			this.addToArray(this.getX(e),this.getY(e),true);
-
-			if(this.player) {
-				this.playerDraw();
-			}
 		}
 	}
 
@@ -109,41 +94,36 @@ export default class Canvas extends Component {
 			size: this.ctx.lineWidth,
 			dragging: dragStatus
 		})
-
 		this.scope.pushDrawState(this.points);
 	}
 
 	// client redraw function
 	redraw() {
-		this.clearContext(this.ctx);
+		let points = this.props.drawState;
 
-		for(var i = 0; i < this.points.length; i++) {
-			let path = this.points[i];
+		if(!points.length) {
+			this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+			return;
+		}
 
-			this.ctx.beginPath();
-			this.ctx.moveTo(path[0].x,path[0].y);
+		let path = points[points.length - 1];
 
-			if(path.length > 6 && path[0].dragging || path[1] && path[1].dragging) {
-				this.renderPath(path);			
-			} else {
-				this.renderDot(path);
+		if(path.length > 4) {
+			this.ctx.beginPath();		
+			let item = path[0];
+			var startX = item.x;
+			var startY = item.y;
+			
+			this.ctx.moveTo(startX,startY);
+
+			if(item.dragging || path[1].dragging) {
+				this.renderPath(path);
 			}
+		} else {
+			this.renderDot(path);
 		}
-	}
 
-	// player redraw function
-	playerDraw() {
-		this.ctx.beginPath();
-		let path = this.points[this.current];
-		let item = path[0];
-		var startX = item.x;
-		var startY = item.y;
 		
-		this.ctx.moveTo(startX,startY);
-
-		if(item.length > 4 && path[0].dragging || path[1].dragging) {
-			this.renderPath(path);
-		}
 	}
 
 	// path renderer
@@ -202,6 +182,8 @@ export default class Canvas extends Component {
 	fullClear() {
 		this.clearContext(this.ctx);
 		this.clearArrays();
+
+		this.scope.pushDrawImage(this.canvas.toDataURL());
 	}
 
 
@@ -231,8 +213,10 @@ export default class Canvas extends Component {
 
 	render() {
 		this.setupArrays();
-
-		if(this.canvas && !this.props.player) {
+		
+		if(this.canvas) {
+			this.canvasX = this.canvas.offsetLeft;
+			this.canvasY = this.canvas.offsetTop;
 			this.redraw();
 		}
 

@@ -592,3 +592,12 @@ h1, h2, h3, h4, h5 {
   word-break: break-word;
   display: block;
 }
+
+.users__list {
+  text-align: right;
+  margin-bottom: 1.5em;
+}
+
+.users__user.active {
+  color: #B22222;
+}

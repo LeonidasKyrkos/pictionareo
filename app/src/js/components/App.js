@@ -1,33 +1,36 @@
 import React, { Component, PropTypes } from 'react'
-import LinkedStateMixin from 'react-addons-linked-state-mixin';
-import reactMixin from 'react-mixin';
 
 // components
 import DictionaryItem from './DictionaryItem';
 import DifficultyModes from './DifficultyModes';
 import Canvas from './Canvas';
 import Chat from './Chat';
+import Users from './Users';
 
 export default class App extends Component {
 	constructor(props) {
 		super(props);
 		this.roomId = this.props.routeParams.roomId;
 		this.userId = this.props.route.username;
+		this.userIndex = this.props.route.userIndex;
 		this.base = this.props.route.base;
 
 		this.defaultDrawState = [];
 
-		var playerStatus = this.userId === 'leo' ? true : false;
+		let playerStatus = false;
 
 		this.state = {
 			dictionary: {},
 			puzzle: '',
 			chatLog: [],
 			drawState: this.defaultDrawState,
+			drawImg: {},
 			player: playerStatus,
+			activePlayer: '',
 			userId: this.userId,
 			roomId: this.roomId,
-			users: {}
+			userIndex: this.userIndex,
+			users: []
 		};
 	}
 
@@ -58,45 +61,24 @@ export default class App extends Component {
 
 		this.base.syncState('/rooms/' + this.state.roomId + '/users',{
 			context: this,
-			state: 'users'
+			state: 'users',
+			asArray: true
 		});
 
-		if(this.state.player) {
-			this.base.fetch('/rooms/' + this.state.roomId + '/puzzle', {
-				context: this,
-				then(data) {
-					this.wordHandler(data);
-				}
-			})
-		} else {
-			this.base.syncState('/rooms/' + this.state.roomId + '/puzzle/word',{
-				context: this,
-				state: 'puzzle'
-			});
-		}
-		
+		this.base.listenTo('/rooms/' + this.state.roomId + '/puzzle', {
+			context: this,
+			then(puzzle){
+				console.log(puzzle);
+			}
+		})
 	}
 
-	wordHandler(data) {
-		if(data && data.user === this.state.userId) {
-			this.setWord(data.word);
-		} else {
-			let dictionary = this.state.dictionary;
-			let random = Math.round(Math.random() * (Object.keys(dictionary).length - 1));
-			let word = Object.keys(dictionary)[random];
+	getWord() {
+		let dictionary = this.state.dictionary;
+		let random = Math.round(Math.random() * (Object.keys(dictionary).length - 1));
+		let word = Object.keys(dictionary)[random];
 
-			let data = {};
-			data.word = word;
-			data.user = this.state.userId;
-			let scope = this;
-
-			this.base.post('/rooms/' + this.state.roomId + '/puzzle', {
-				data,
-				then(){
-					scope.setWord(word);
-				}
-			});
-		}
+		return word;
 	}
 
 	setWord(word) {
@@ -109,6 +91,12 @@ export default class App extends Component {
 		// I used to set state here and let the re-base syncstate update the firebase db. This no longer works for some reason...	
 		this.base.post('/rooms/' + this.state.roomId + '/drawState', {
 			data: obj
+		});
+	}
+
+	pushDrawImage(img) {
+		this.base.post('/rooms/' + this.state.roomId + '/drawImg', {
+			data: { image: img }
 		});
 	}
 
@@ -126,13 +114,21 @@ export default class App extends Component {
 			data.message = msg;
 			data.timestamp = timestamp;
 
-			this.base.push('/rooms/' + this.state.roomId + '/chatLog', {
-				data,
-				then(){
-					input.value = "";
-					chatHistory.scrollTop = chatHistory.scrollHeight;
-				}
-			});
+			if(data.message === this.state.puzzle) {
+				console.log(this.state.users[this.state.userIndex]);
+				input.value = "";
+				window.alert(`correct! well done ${this.state.userId}`);
+			} else {
+				this.base.push('/rooms/' + this.state.roomId + '/chatLog', {
+					data,
+					then(){
+						input.value = "";
+						chatHistory.scrollTop = chatHistory.scrollHeight;
+					}
+				});
+			}
+
+			
 		}
 	}
 
@@ -161,9 +157,10 @@ export default class App extends Component {
 			return (
 				<article className="wrapper">
 					<h1 className="alpha">Pictionary</h1>
+					<Users users={this.state.users} />
 					<div className="game__wrap">
 						{puzzle}
-						<Canvas base={this.base} scope={this} player={this.state.player} drawState={this.state.drawState} />
+						<Canvas base={this.base} scope={this} player={this.state.player} drawState={this.state.drawState} users={this.state.users}  />
 						<Chat scope={this} chatLog={this.state.chatLog} />
 					</div>					
 				</article>

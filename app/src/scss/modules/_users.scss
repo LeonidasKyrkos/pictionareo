@@ -1,0 +1,15 @@
+$module:			'users';
+
+
+.#{$module} {
+	&__list {
+		text-align: right;
+		margin-bottom: em(30);
+	}
+
+	&__user {
+		&.active {
+			color: $color1;
+		}
+	}
+}

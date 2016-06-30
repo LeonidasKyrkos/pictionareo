@@ -40,18 +40,18 @@ export default class RoomPicker extends React.Component {
 	}
 
 	runTests(data,formData) {
-		let room = data[formData.room];
+		this.room = data[formData.room];
 
-		if(!room) { return { status: false, reason: `Room number not found or password incorrect` } }
+		if(!this.room) { return { status: false, reason: `Room number not found or password incorrect` } }
 
 		let tests = {
 			password: {
 				func: this.compare,
-				args: [room.password, formData.password, `Room number not found or password incorrect`]
+				args: [this.room.password, formData.password, `Room number not found or password incorrect`]
 			},
 			users: {
 				func: this.in,
-				args: [room.users, formData.username, `Sorry there's already someone called ${formData.username} in that room. Please choose another name.`]
+				args: [this.room.users, formData.username, `Sorry there's already someone called ${formData.username} in that room. Please choose another name.`]
 			}
 		}
 
@@ -94,11 +94,9 @@ export default class RoomPicker extends React.Component {
 
 
 	passed(roomId,username,password) {
-		sessionStorage.setItem(this.props.route.unString,username);
-		sessionStorage.setItem(this.props.route.pString,password);
-
+		let data = { user: username };
 		this.base.push('/rooms/' + roomId + '/users',{
-			data: { name: username },
+			data: data,
 			then() {
 				browserHistory.push('/rooms/' + roomId);
 			}
